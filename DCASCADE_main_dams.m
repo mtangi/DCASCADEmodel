@@ -8,11 +8,13 @@ function [data_output,extended_output,dam_output] = DCASCADE_main_dams( ReachDat
 % Q              = txn matrix reporting the discharge for each timestep
 % timescale      = length for the time horizion considered in the 
 %
+%
 %----
 % OUTPUT: 
 %
 % data_output      = struct collecting the main aggregated output matrices 
 % extended_output  = struct collecting the raw D-CASCADE output datasets
+% dam_outputs      = struct collecting main output for the reservoirs in the network
 
 %% load global variables
 
