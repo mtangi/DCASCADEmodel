@@ -29,8 +29,7 @@ Wac = [ReachData.Wac];
 NH = Network.NH; %node hierarchy
 
 outlet = Network.NH(end); % outlet reach ID identification
-          
-
+    
 %% variables definition 
     
 %Variables to be calculated during the routing
@@ -161,7 +160,7 @@ for t = 2: timescale-1
         tr_cap = Engelund_Hansen_tr_cap_3(Fi_r_act{t}(:,n) , Slope(t,n) , Wac(n), v(n) , h(n), 'partitioning','bmf' )' .* 24.*60.*60;
 
         tr_cap_sum(t,n) = sum(tr_cap);
-
+        
         %%% 3) Deposit the cascades in the active layer until the volume mobilized for each class is equal to the tr_cap
 
         if sum(tr_cap) < ( sum(V_dep2act(:,2:end),'all') + sum(V_inc2act(:,2:end),'all') ) %if the total transport capacity is lower than the active layer volume...
@@ -202,9 +201,6 @@ for t = 2: timescale-1
 
     %%% 5) Move the mobilized volumes to the destination reaches according to the sediment velocity
 
-    % compute sediment velocity in the timestep  
-    [ v_sed ] = velocity_EH( Fi_r_act{t} , Slope(t,:) , Wac , v , h , 'minvel', minvel,'phi',phi,'IDformula', 1 );
-
     %loop for all reaches, now that i have the Fi_r and thus can compute transfer rates for all reaches
     clear Qbi_tr_t
     for n = NH
@@ -216,7 +212,7 @@ for t = 2: timescale-1
         V_mob(:,2:length(psi)+1) = squeeze(Qbi_mob{t}(:,n,:));
         V_mob = matrix_compact(V_mob);
         
-        %calculate GSD of mobilized bolume
+        %calculate GSD of mobilized volume
         Fi_mob = sum(V_mob(:,2:end),1)'./sum(V_mob(:,2:end),'all');
         if isnan(Fi_mob); Fi_mob = Fi_r_act{t}(:,n);           end
 
@@ -295,6 +291,12 @@ end
 
 %total sediment volume leaving the network
 outcum_tot = cell2mat(cellfun(@(x) sum(x,'all'), Q_out(1:timescale-1), 'UniformOutput',0));
+
+% set all NaN transport capacity to 0;
+tr_cap_sum(isnan(tr_cap_sum)) = 0;
+
+% set all NaN active layer D50 to 0;
+D50_AL(isnan(D50_AL)) = 0;
 
 %% compress the Qbi_dep matrix
 

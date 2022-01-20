@@ -23,6 +23,10 @@ clear sed_range class_size
 %% Preprocessing
 Network = graph_preprocessing(ReachData);
 
+%% define timescale
+
+timescale = 200;
+
 %% define external sediment inputs
 
 clear Qbi_input; Qbi_input  = cell(timescale,1); [Qbi_input{:}] = deal(zeros(length(Network.II), length(psi)));
@@ -51,8 +55,8 @@ clear  deposit D16 D50 D84 Fi_r
 
 %% run D-CASCADE 
 
-timescale = 200;
-
 [data_output,extended_output] = DCASCADE_main( ReachData , Network , Q , timescale , Qbi_dep_in , Qbi_input  );
 
+%% plot results
 
+dynamic_plot ( data_output, ReachData  )
