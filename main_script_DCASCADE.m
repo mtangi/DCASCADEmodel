@@ -25,7 +25,7 @@ Network = graph_preprocessing(ReachData);
 
 %% define timescale
 
-timescale = 200;
+timescale = 365;
 
 %% define external sediment inputs
 

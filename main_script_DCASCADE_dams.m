@@ -26,7 +26,7 @@ Network = graph_preprocessing(ReachData);
 
 %% define timescale
 
-timescale = 200;
+timescale = 365;
 
 %% define external sediment inputs
 
@@ -52,3 +52,5 @@ clear  deposit D16 D50 D84 Fi_r
 %% plot results
 
 dynamic_plot ( data_output, ReachData  )
+
+plot_dam_features(dam_output,Q,dates_Q)
