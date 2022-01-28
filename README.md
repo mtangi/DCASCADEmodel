@@ -9,6 +9,8 @@ The main folder also contains two scripts, which show how to run D-CASCADE for t
 - Script main_script_DCASCADE contains all operations necessary to run D-CASCADE on the Bega river network;
 - Script main_script_DCASCADE contains all operations necessary to run D-CASCADE on the 3S river network. This case study includes multiple reservoirs in the system, whose features (stored water and sediment volumes, release, flooded area, and others) are dynamically modelled.
 
+A detailed explanation of the model structure and functioning is documented in Tangi, M., Bizzi, S., Fryirs, K., & Castelletti, A. (2022). A dynamic, network scale sediment (dis)connectivity model to reconstruct historical sediment transfer and river reach sediment budgets. Water Resources Research, 58, e2021WR030784. https://doi.org/10.1029/2021WR030784
+
 ---
 
 INPUT DATA
@@ -16,7 +18,7 @@ INPUT DATA
 Here, we describe the basic input necessary to run D-CASCADE. Note that the Code is heavily customizable to adapt the model to each case study.
 - ReachData: struct reporting for each reach of the network the attribute column variables. ReachData is structured in the same way as in the original CASCADE toolbox. Therefore, we suggest users read the documentation available for the original CASCADE toolbox, (https://github.com/mtangi/cascademodel), including the user manual, to learn more about the structure and field in ReachData and how it can be extracted from a digital elevation model (DEM). An example of ReachData is provided for both the Bega and 3S river case study.
 - Q: matrix containing the discharge [m3/s] for each daily timestep in each reach of the network. An example of Q is provided for both the Bega and 3S river case study, for a 11-year simulation.
-- psi: sediment classes defined in Krumbein phi scale. Each sediment volume is classified as one of these classes. An example of how to define psi is shown in the scripts.
+- psi: sediment classes defined in Krumbein phi [φ] scale (Krumbein and Sloss, 1963). Each sediment volume is classified as one of these classes. An example of how to define psi is shown in the scripts.
 - Qbi_dep_in: cell structure reporting the initialized sediment volume in the deposit layer for the first timestep of the simulation, partitioned between the sediment classes. An example of Qbi_input is provided for the Bega river case study.
 - Qbi_input: cell structure reporting the input sediment volume in each timestep for each reach from external sources (e.g., hillslope erosion or debris flows), partitioned between the sediment classes. An example of Qbi_input is provided for the 3S river case study.
 
@@ -42,7 +44,7 @@ These method are derived from Molinas and Wu (2000).
 
 The user can choose between two formulas to calculate the characteristic velocity of sediment. The chosen formula can be specified as a Name-Value pair argument to the primary function using the name 'velocity_formula' and as value, the ID of the method, listed below (see example in the script):
 
-1) Virtual sediment velocity according to total transport capacity. This formulation estimates the sediment velocity via  the total transport capacity of the mobilized sediment volume, and guarantees an estimate of sediment velocity that is useful for large-scale modelling efforts (Hassan et al., 1991; Czuba et al., 2018). However, it provides a single estimation of sediment velocity for the mobilized sediment volume, without discriminating between different sediment classes.
+1) Virtual sediment velocity according to total transport capacity. This formulation estimates the sediment velocity via  the total transport capacity of the mobilized sediment volume, and guarantees an estimate of sediment velocity that is useful for large-scale modelling efforts (Hassan et al., 1991; Czuba and Foufoula-Georgiou, 2014; Czuba et al. ,2018). However, it provides a single estimation of sediment velocity for the mobilized sediment volume, without discriminating between different sediment classes.
 2) Virtual sediment velocity by fractional transport capacity. This formula calculates sediment velocity by measuring transport capacity for each class independently from the grain size distribution of the mobilized material. Thus, interactions between grains of different classes do not influence sediment velocity. As a result, sediment velocity may vary between sediment classes.
 
 ---
@@ -98,3 +100,29 @@ DAM_OUTPUT contains all the D-CASCADE outputs referring to the conditions and op
 - Reservoir sediment storage contains the total sediment volume [m3] stored in the reservoirs in each timestep. This volume is composed of the aggregated sediment deposits in each flooded reaches.
 - Reach Energy Slope [-] contains the energy slope for each reach in each timestep. In this version of D-CASCADE, the Energy Slope differs from the channel gradient in the timestep only in flooded reaches.
 - Flooded reaches ID at FSL contains, for each dam, the ID of the flooded or partially flooded reaches when the reservoir is at full supply level.
+
+---
+
+References:
+
+Ackers, P. and White, W. R. (1973). Sediment transport: new approach and analysis. Journal of the Hydraulics Division, 99(11):2041–2060.
+
+Engelund, F. and Hansen, E. (1967). A monograph on sediment transport in alluvial streams. Technical University of Denmark 0stervoldgade 10, Copenhagen K.
+
+Krumbein, W. C. and Sloss, L. L. (1963). Stratigraphy and sedimentation. Technical report.
+
+Czuba, J.A., Foufoula-Georgiou, E., 2014. A network-based framework for identifying potential synchronizations and amplifications of sediment delivery in river basins. Water Resources Research 50, 3826–3851.
+
+Czuba, J.A., 2018. A lagrangian framework for exploring complexities of mixed-size sediment transport in gravel-bedded river networks. Geomorphology 321, 146–152.
+
+Hassan, M.A., Church, M., Schick, A.P., 1991. Distance of movement of coarse particles in gravel bed streams. Water Resources Research 27, 503–511.
+
+Parker, G. and Klingeman, P. C. (1982). On why gravel bed streams are paved. Water Resources Research, 18(5):1409–1423.
+
+Tangi, M., Bizzi, S., Fryirs, K., & Castelletti, A. (2022). A dynamic, network scale sediment (dis)connectivity model to reconstruct historical sediment transfer and river reach sediment budgets. Water Resources Research, 58, e2021WR030784. https://doi.org/10.1029/2021WR030784
+
+Wilcock, P. R. and Crowe, J. C. (2003). Surface-based transport model for mixed-size sediment. Journal of Hydraulic Engineering, 129(2):120–128.
+
+Wong, M. and Parker, G. (2006). Reanalysis and correction of bed-load relation of meyer-peter and müller using their own database. Journal of Hydraulic Engineering, 132(11):1159–1168.
+
+Yang, C. T. (1984). Unit stream power equation for gravel. Journal of Hydraulic Engineering, 110(12):1783–1797.
