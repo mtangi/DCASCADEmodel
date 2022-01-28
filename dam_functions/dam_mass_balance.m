@@ -14,6 +14,7 @@ dam_order = NH(logical(sum(NH == [DamDatabase_active.Node_ID]',1)));
 
 def_OR = ones(length(DamDatabase_active));
 def_ORparam = [];
+
 p = inputParser;
 addOptional(p,'OperatingRule',def_OR);
 addOptional(p,'ORparameters',def_ORparam);
@@ -26,7 +27,7 @@ parse(p,varargin{:})
 id_OR = p.Results.OperatingRule ;
 ORparameters_active = p.Results.ORparameters ;
 date_timestep = p.Results.date; %date relative to timestep t
-Q_input_estimates = p.Results.Q_input_estimates;  % estimated discharge entering the reservoir at time t, used for release decision making;
+Q_input_estimates = p.Results.Q_input_estimates;  % estimated discharge entering the reservoir at time t, used for release decision-making;
 FSL_ResVolume_t = p.Results.FSL_ResVolume; %reservoir volume at full supply level at time t
 
 %% define operating rule

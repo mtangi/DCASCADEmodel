@@ -49,8 +49,21 @@ clear  deposit D16 D50 D84 Fi_r
 
 [data_output,extended_output,dam_output] = DCASCADE_main_dams( ReachData , Network , Q , timescale , DamDatabase, ORparameters, Qbi_dep_in , Qbi_input , dates_Q );
 
+%% run D-CASCADE (user defined settings)
+
+% tr_cap_equation = 1;
+% partition_formula = 3;
+% velocity_formula = 2;
+% 
+% 
+% [data_output,extended_output] = DCASCADE_main( ReachData , Network , Q , timescale , Qbi_dep_in , Qbi_input ,'tr_cap_equation',tr_cap_equation,'partition_formula',partition_formula,'velocity_formula',velocity_formula );
+% 
+% clear  tr_cap_equation partition_formula velocity_formula
+
 %% plot results
 
-dynamic_plot ( data_output, ReachData  )
+dynamic_plot ( data_output, ReachData ,DamDatabase )
 
 plot_dam_features(dam_output,Q,dates_Q)
+
+

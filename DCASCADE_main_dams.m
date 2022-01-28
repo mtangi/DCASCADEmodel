@@ -1,4 +1,4 @@
-function [data_output,extended_output,dam_output] = DCASCADE_main_dams( ReachData , Network , Q , timescale , DamDatabase, ORparameters, Qbi_dep_in , Qbi_input , dates_Q )
+function [data_output,extended_output,dam_output] = DCASCADE_main_dams( ReachData , Network , Q , timescale , DamDatabase, ORparameters, Qbi_dep_in , Qbi_input ,varargin )
 %% DCASCADE_main_dams
 %
 % INPUT :
@@ -21,6 +21,32 @@ function [data_output,extended_output,dam_output] = DCASCADE_main_dams( ReachDat
 global psi
 global roundpar
 
+%% load user inputs
+
+%set default values
+def_indx_tr_cap = 3;
+def_indx_partition = 3;
+def_indx_velocity = 1;
+def_OpRule = 3;
+
+%read  varargin input
+p = inputParser;
+
+addOptional(p,'tr_cap_equation',def_indx_tr_cap);
+addOptional(p,'partition_formula',def_indx_partition);
+addOptional(p,'velocity_formula',def_indx_velocity);
+addOptional(p,'dates_Q',[]);
+addOptional(p,'OpRule',def_OpRule);
+
+parse(p,varargin{:})
+
+%load input values
+indx_tr_cap = p.Results.tr_cap_equation ;
+indx_partition =  p.Results.partition_formula;
+indx_velocity = p.Results.velocity_formula;        
+dates_Q = p.Results.dates_Q; 
+id_OR =  p.Results.OpRule;  %operating rule ID
+
 %% Variables extraction from ReachData 
 
 %reach properties
@@ -33,7 +59,7 @@ NH = Network.NH; %node hierarchy
 
 outlet = Network.NH(end); % outlet reach ID identification
           
-Q_original = Q;
+Q_original = Q; % Q original saves the original discharge values, that will be changed according to the dams daily release schedule
 
 %% variables definition 
     
@@ -88,13 +114,16 @@ ORparameters_active = ORparameters([DamDatabase.portfolio] == 1) ;
 flooded_reaches_full = ReservoirHydraulics_full.ResInundNodes;
 
 %% initialize dam variables
-clear start_vol
+
+%reservoir stored volume [m3]
+ResVolume = zeros(timescale+1, length(DamDatabase_active));
+
+start_vol = zeros(size(DamDatabase_active)); %  initialize reservoir stored volume in the first timestep
+
 for d=1:length(DamDatabase_active) 
     start_vol(d) = Reservoir_LSWConversion(DamDatabase_active(d).WL_start ,DamDatabase_active(d).WL_table, 1, 3);
 end
 
-%reservoir stored volume [m3]
-ResVolume = zeros(timescale+1, length(DamDatabase_active));
 ResVolume(1:2,:) = repmat(start_vol,2,1);
 
 %reservoir release [m3/s]
@@ -106,9 +135,6 @@ FSL_ResVolume(1:2,:) = repmat([DamDatabase_active.FSL_ResVolume],2,1);
 
 %reservoir sediment storage [m3]
 sed_storage = zeros(timescale+1, length(DamDatabase_active));
-
-%operating rule ID
-id_OR = 3;
 
 %% variables initialization
     
@@ -226,7 +252,7 @@ for t = 2: timescale-1
         D50_AL(t,n) = D_finder(Fi_r_act{t}(:,n));
 
         %calculate transport capacity using the Fi of the active layer, the resulting tr_cap is in m3/s and is converted in m3/day
-        tr_cap = Engelund_Hansen_tr_cap_3(Fi_r_act{t}(:,n) , EnergySlope(t,n)  , Wac(t,n), v(n) , h(n), 'partitioning','bmf' )' .* 24.*60.*60;
+        tr_cap = tr_cap_junction( indx_tr_cap , indx_partition , Fi_r_act{t}(:,n) ,  D50_AL(t,n) ,   EnergySlope(t,n) , Q(t,n) , Wac(t,n) , v(n) , h(n) ) .* 24.*60.*60 ;
 
         tr_cap_sum(t,n) = sum(tr_cap);
         
@@ -236,7 +262,7 @@ for t = 2: timescale-1
               %... deposit part of the active layer cascades, 
               %    proportionally to their volume and the volume of the active layer
 
-              [V_mob, V_dep ] = tr_cap_deposit( V_inc2act, V_dep2act, V_dep, tr_cap);      
+              [V_mob, V_dep ] = tr_cap_deposit( V_inc2act, V_dep2act, V_dep, tr_cap');      
 
         else
             % if not, the mobilized layer is equal to the active
@@ -286,8 +312,8 @@ for t = 2: timescale-1
         if isnan(Fi_mob); Fi_mob = Fi_r_act{t}(:,n);           end
 
         %calculate sediment velocity for the mobilized volume in each reach
-        [ v_sed ] = velocity_EH( repmat( Fi_mob,[1 length(NH)] ) , EnergySlope(t,:) , Wac(t,:) , v , h , 'minvel', minvel,'phi',phi,'IDformula', 1 ) ;
-
+        [ v_sed ] = sed_velocity( indx_tr_cap , indx_partition,  repmat( Fi_mob,[1 length(NH)] ) , EnergySlope(t,:) , Q(t,:) , Wac(t,:) , v , h , 'minvel', minvel,'phi',phi,'velocity_formula', indx_velocity ) ;
+        
         %transfer the sediment volume downstream
         [Qbi_tr_t, Q_out_t  ] = sed_transfer_simple( V_mob , n , v_sed.*(60*60*24) , Lngt, Network );
 
@@ -317,8 +343,7 @@ toc
 
 %% output processing
 
-% aggregated matrixes
-QB_mob = cellfun( @(x)double(sum(x,3)),Qbi_mob(1:timescale-1),'UniformOutput',0); %total sediment mobilized in each reach (column), divided by reach provenance (row)
+%QB_mob = cellfun( @(x)double(sum(x,3)),Qbi_mob(1:timescale-1),'UniformOutput',0); %total sediment mobilized in each reach (column), divided by reach provenance (row)
 QB_mob_sum = cell2mat( cellfun(@(x)double(sum(x,[1,3])),Qbi_mob(1:timescale-1),'UniformOutput',0)); %total sediment mobilized in each reach (column)
 
 %total sediment delivered in each reach (column), divided by reach provenance (row)
@@ -359,7 +384,7 @@ for c = 1:length(tot_sed_class)
 end
 
 %total sediment volume leaving the network
-outcum_tot = cell2mat(cellfun(@(x) sum(x,'all'), Q_out(1:timescale-1), 'UniformOutput',0));
+%outcum_tot = cell2mat(cellfun(@(x) sum(x,'all'), Q_out(1:timescale-1), 'UniformOutput',0));
 
 % set all NaN transport capacity to 0;
 tr_cap_sum(isnan(tr_cap_sum)) = 0;
@@ -376,16 +401,16 @@ D50_AL(isnan(D50_AL)) = 0;
 
 data_output = cell(1,2);
 
-data_output{1,1} = 'Wac';
-data_output{2,1} = 'Mobilized volume';
-data_output{3,1} = 'Total sed in the reach';
-data_output{4,1} = 'Slope';
-data_output{5,1} = 'D50 tot';
-data_output{6,1} = 'D50 active layer';
-data_output{7,1} = 'Total trasport capacity';
-data_output{8,1} = 'Deposited volume';
-data_output{9,1} = 'Discharge';
-data_output{10,1} = 'Total sed in the reach - per class';
+data_output{1,1} = 'Channel Width [m]';
+data_output{2,1} = 'Mobilized volume [m^3]';
+data_output{3,1} = 'Total sed in the reach [m^3]';
+data_output{4,1} = 'Reach Slope';
+data_output{5,1} = 'Deposit layer D50 [mm]';
+data_output{6,1} = 'Active layer D50 [mm]';
+data_output{7,1} = 'Daily trasport capacity [m^3/day]';
+data_output{8,1} = 'Deposited volume [m^3]';
+data_output{9,1} = 'Discharge [m^3/s]';
+data_output{10,1} = 'Total sed in the reach - per class [m^3]';
 
 data_output{1,2} = repmat(Wac,[size(Qbi_dep,1),1]); 
 data_output{2,2} = QB_mob_sum;
@@ -434,11 +459,11 @@ dam_output{8,2} = flooded_reaches_full;
 
 dam_output{1,1} = 'DamDatabase_active'; 
 dam_output{2,1} = 'ORparameters_active';
-dam_output{3,1} = 'ResVolume';
-dam_output{4,1} = 'release';
-dam_output{5,1} = 'FSL_ResVolume';
-dam_output{6,1} = 'sed_storage';
-dam_output{7,1} = 'EnergySlope';
-dam_output{8,1} = 'flooded_reaches_full';
+dam_output{3,1} = 'Reservoir Volume';
+dam_output{4,1} = 'Release';
+dam_output{5,1} = 'Volume at FSL';
+dam_output{6,1} = 'Reservoir sediment storage';
+dam_output{7,1} = 'Reach Energy Slope';
+dam_output{8,1} = 'Flooded reaches ID at FSL';
 
 end

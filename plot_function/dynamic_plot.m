@@ -52,7 +52,7 @@ if any(cell2mat(cellfun(@(x)strcmp(x,'Total sed in the reach - per class'),data_
 
 end
 
-Q = data_output{cell2mat(cellfun(@(x)strcmp(x,'Discharge'),data_output(:,1), 'UniformOutput', false)) == 1 ,2} ;
+Q = data_output{cell2mat(cellfun(@(x)strcmp(x,'Discharge [m^3/s]'),data_output(:,1), 'UniformOutput', false)) == 1 ,2} ;
 
 %% plot starting river network
 
@@ -77,13 +77,13 @@ set(hn,'DisplayName','Nodes','Visible','off','HandleVisibility','off');
 
 %display reach ID
 for i=1:size(ReachData,1)
-    str{i} = num2str([ReachData(i).reach_id]);
+    str_a{i} = num2str([ReachData(i).reach_id]);
 end
 
 xt = ([ReachData.x_FN]+[ReachData.x_TN])/2;
 yt = ([ReachData.y_FN]+[ReachData.y_TN])/2;
 hold on
-ts = textscatter(xt,yt,str);
+ts = textscatter(xt,yt,str_a);
 set(ts,'Visible','off','MarkerColor','none', 'TextDensityPercentage' ,80 ,'HandleVisibility','off');
 
 %display Dams names
@@ -132,8 +132,8 @@ option_button = default_button;
 %     'BackgroundColor', 'w','FontSize',12);
 % 
 
-str = {['time = ' num2str(timestep)] [] ['timelapse = ' num2str(timelapse)] ['variable = ' data_output{plot_class,1}] [] [' Q = ' num2str(max(Q(timestep,:)))]   };
-a = annotation('textbox',[0.841 0.62 0.3 0.3],'String',str,'FitBoxToText','on',...
+str_a = {['time = ' num2str(timestep)] [] ['timelapse = ' num2str(timelapse)] ['variable = ' data_output{plot_class,1}] [] [' Q = ' num2str(max(Q(timestep,:)))]   };
+a = annotation('textbox',[0.841 0.62 0.3 0.3],'String',str_a,'FitBoxToText','on',...
  'BackgroundColor', 'w','FontSize',12);
  
 
@@ -165,10 +165,9 @@ while ~ any (option_button == exit_button)
       plot_network_dyn ( ReachData, plotvariable, 'CMap', cMap, 'cClass',cClass{plot_class});
        
       delete(a)
-      str = {['time = ' num2str(timestep)] [] ['timelapse = ' num2str(timelapse)] ['class = ' data_output{plot_class,1}] [] [' Q = ' num2str(max(Q(timestep,:)))]   };
-      a = annotation('textbox',[0.841 0.62 0.3 0.3],'String',str,'FitBoxToText','on',...
+      str_a = {['time = ' num2str(timestep)] [] ['timelapse = ' num2str(timelapse)] ['class = ' data_output{plot_class,1}] [] [' Q = ' num2str(max(Q(timestep,:)))]   };
+      a = annotation('textbox',[0.841 0.62 0.3 0.3],'String',str_a,'FitBoxToText','on',...
      'BackgroundColor', 'w','FontSize',12);
- 
       b = annotation('textbox',[0.12 0.62 0.3 0.3],'String',str_b,'FitBoxToText','on','BackgroundColor', 'w','FontSize',12);
 
       uistack(ts,'top'); uistack(hn,'top'); uistack(dm,'top');     %put nodes and reach ID on top of the new plotted network
@@ -185,8 +184,8 @@ while ~ any (option_button == exit_button)
       plot_network_dyn ( ReachData, plotvariable, 'CMap', cMap, 'cClass',cClass{plot_class});
         
       delete(a)
-      str = {['time = ' num2str(timestep)] [] ['timelapse = ' num2str(timelapse)] ['class = ' data_output{plot_class,1}] [] [' Q = ' num2str(max(Q(timestep,:)))]   };
-      a = annotation('textbox',[0.841 0.62 0.3 0.3],'String',str,'FitBoxToText','on',...
+      str_a = {['time = ' num2str(timestep)] [] ['timelapse = ' num2str(timelapse)] ['class = ' data_output{plot_class,1}] [] [' Q = ' num2str(max(Q(timestep,:)))]   };
+      a = annotation('textbox',[0.841 0.62 0.3 0.3],'String',str_a,'FitBoxToText','on',...
      'BackgroundColor', 'w','FontSize',12);
       b = annotation('textbox',[0.12 0.62 0.3 0.3],'String',str_b,'FitBoxToText','on','BackgroundColor', 'w','FontSize',12);
 
@@ -201,8 +200,8 @@ while ~ any (option_button == exit_button)
       end
      
       delete(a)
-      str = {['time = ' num2str(timestep)] [] ['timelapse = ' num2str(timelapse)] ['class = ' data_output{plot_class,1}] [] [' Q = ' num2str(max(Q(timestep,:)))]   };
-      a = annotation('textbox',[0.841 0.62 0.3 0.3],'String',str,'FitBoxToText','on',...
+      str_a = {['time = ' num2str(timestep)] [] ['timelapse = ' num2str(timelapse)] ['class = ' data_output{plot_class,1}] [] [' Q = ' num2str(max(Q(timestep,:)))]   };
+      a = annotation('textbox',[0.841 0.62 0.3 0.3],'String',str_a,'FitBoxToText','on',...
      'BackgroundColor', 'w','FontSize',12);
       b = annotation('textbox',[0.12 0.62 0.3 0.3],'String',str_b,'FitBoxToText','on','BackgroundColor', 'w','FontSize',12);
    
@@ -223,11 +222,13 @@ while ~ any (option_button == exit_button)
         plot_network_dyn ( ReachData, plotvariable, 'CMap', cMap, 'cClass',cClass{plot_class});
 
         delete(a)
-        str = {['time = ' num2str(timestep)] [] ['timelapse = ' num2str(timelapse)] ['class = ' 1] [] [' Q = ' num2str(max(Q(timestep,:)))]   };
-        a = annotation('textbox',[0.841 0.62 0.3 0.3],'String',str,'FitBoxToText','on',...
+        str_a = {['time = ' num2str(timestep)] [] ['timelapse = ' num2str(timelapse)] ['class = ' 1] [] [' Q = ' num2str(max(Q(timestep,:)))]   };
+        a = annotation('textbox',[0.841 0.62 0.3 0.3],'String',str_a,'FitBoxToText','on',...
         'BackgroundColor', 'w','FontSize',12);
         b = annotation('textbox',[0.12 0.62 0.3 0.3],'String',str_b,'FitBoxToText','on','BackgroundColor', 'w','FontSize',12);
     
+        uistack(ts,'top'); uistack(hn,'top'); uistack(dm,'top');     %put nodes and reach ID on top of the new plotted network
+
     %change plot_variable
     elseif option_button == list_button
        
@@ -267,8 +268,8 @@ while ~ any (option_button == exit_button)
 
         %change annotation
         delete(a)
-        str = {['time = ' num2str(timestep)] [] ['timelapse = ' num2str(timelapse)] ['class = ' 1] [] [' Q = ' num2str(max(Q(timestep,:)))]   };
-        a = annotation('textbox',[0.841 0.62 0.3 0.3],'String',str,'FitBoxToText','on',...
+        str_a = {['time = ' num2str(timestep)] [] ['timelapse = ' num2str(timelapse)] ['class = ' data_output{plot_class,1}] [] [' Q = ' num2str(max(Q(timestep,:)))]   };
+        a = annotation('textbox',[0.841 0.62 0.3 0.3],'String',str_a,'FitBoxToText','on',...
         'BackgroundColor', 'w','FontSize',12);
         b = annotation('textbox',[0.12 0.62 0.3 0.3],'String',str_b,'FitBoxToText','on','BackgroundColor', 'w','FontSize',12);
     
@@ -295,7 +296,7 @@ while ~ any (option_button == exit_button)
        end
        
    %toggle reach id
-   elseif and(option_button == dam_button , ~isempty(DamDatabase))
+   elseif and(option_button == dam_button , ~isempty(DamDatabase_active))
       
        if strcmp(get(dm,'visible'), 'on')
              set(dm,'Visible','off')

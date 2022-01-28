@@ -1,4 +1,4 @@
-function [data_output,extended_output] = DCASCADE_main( ReachData , Network , Q , timescale , Qbi_dep_in , Qbi_input  )
+function [data_output,extended_output] = DCASCADE_main( ReachData , Network , Q , timescale , Qbi_dep_in , Qbi_input , varargin )
 %% DCASCADE_main
 %
 % INPUT :
@@ -9,6 +9,7 @@ function [data_output,extended_output] = DCASCADE_main( ReachData , Network , Q 
 % timescale      = length for the time horizion considered in the 
 %
 %----
+%
 % OUTPUT: 
 %
 % data_output      = struct collecting the main aggregated output matrices 
@@ -18,6 +19,27 @@ function [data_output,extended_output] = DCASCADE_main( ReachData , Network , Q 
 
 global psi
 global roundpar
+
+%% load user inputs
+
+%set default values
+def_indx_tr_cap = 3;
+def_indx_partition = 3;
+def_indx_velocity = 1;
+
+%read  varargin input
+p = inputParser;
+
+addOptional(p,'tr_cap_equation',def_indx_tr_cap);
+addOptional(p,'partition_formula',def_indx_partition);
+addOptional(p,'velocity_formula',def_indx_velocity);
+
+parse(p,varargin{:})
+
+%load input values
+indx_tr_cap = p.Results.tr_cap_equation ;
+indx_partition =  p.Results.partition_formula;
+indx_velocity = p.Results.velocity_formula;        
 
 %% Variables extraction from ReachData 
 
@@ -131,14 +153,14 @@ for t = 2: timescale-1
 
         V_dep_old = double(Qbi_dep{t,n}); % extract the deposit layer of the reach from the relative cell in the previous timestep
 
-        %%% 1) extract the deposit layer from the storage matri and load the incoming cascades
+        %%% 1) extract the deposit layer from the storage matrix and load the incoming cascades
 
         Qbi_incoming = [(1:length(NH))' squeeze(Qbi_tr{t}(:, n,:)) ; n Qbi_input{t}(n,:) ]; 
         Qbi_incoming(sum(Qbi_incoming(:,2:end),2)==0,:) = [];
 
         if isempty(Qbi_incoming); Qbi_incoming = [n zeros(1,length(psi))]; end %put an empty cascade if no incoming volumes are present (for computation)
 
-        %sort incoming matrix accoring to distance, in this way
+        %sort incoming matrix according to distance, in this way
         %sediment coming from closer reaches will be deposited first 
         [Qbi_incoming] = sortdistance(Qbi_incoming, Network.Upstream.distancelist{n} );
 
@@ -147,18 +169,13 @@ for t = 2: timescale-1
         %find the volume of sediment from the incoming load (V_inc2act) and deposit layer (V_dep2act) to be included in the active layer
         [V_inc2act , V_dep2act ,  V_dep , Fi_r_act{t}(:,n)] = layer_search (Qbi_incoming, V_dep_old, V_lim_tot(n));
 
-        %if i have almost no sediment in my reach (less then 1/100 of the active layer limit, i put the sed distribution to the values in the previous timestep)
-%             if sum(Qbi_incoming(:,2:end),'all') + sum(V_dep_old(:,2:end),'all') < V_lim_tot(n)/100
-%                 Fi_r_act{t}(:,n) = Fi_r_act{t-1}(:,n);
-%             end
-
         if sum(Fi_r_act{t}(:,n))==0; Fi_r_act{t}(:,n) = Fi_r_act{t-1}(:,n); end % in case the active layer is empty, i use the GSD of the previous timesteep
 
         D50_AL(t,n) = D_finder(Fi_r_act{t}(:,n));
 
         %calculate transport capacity using the Fi of the active layer, the resulting tr_cap is in m3/s and is converted in m3/day
-        tr_cap = Engelund_Hansen_tr_cap_3(Fi_r_act{t}(:,n) , Slope(t,n) , Wac(n), v(n) , h(n), 'partitioning','bmf' )' .* 24.*60.*60;
-
+        tr_cap = tr_cap_junction( indx_tr_cap , indx_partition , Fi_r_act{t}(:,n) ,  D50_AL(t,n) ,  Slope(t,n) , Q(t,n) , Wac(n) , v(n) , h(n) ) .* 24.*60.*60 ;
+        
         tr_cap_sum(t,n) = sum(tr_cap);
         
         %%% 3) Deposit the cascades in the active layer until the volume mobilized for each class is equal to the tr_cap
@@ -167,7 +184,7 @@ for t = 2: timescale-1
               %... deposit part of the active layer cascades, 
               %    proportionally to their volume and the volume of the active layer
 
-              [V_mob, V_dep ] = tr_cap_deposit( V_inc2act, V_dep2act, V_dep, tr_cap);      
+              [V_mob, V_dep ] = tr_cap_deposit( V_inc2act, V_dep2act, V_dep, tr_cap');      
 
         else
             % if not, the mobilized layer is equal to the active
@@ -216,9 +233,9 @@ for t = 2: timescale-1
         Fi_mob = sum(V_mob(:,2:end),1)'./sum(V_mob(:,2:end),'all');
         if isnan(Fi_mob); Fi_mob = Fi_r_act{t}(:,n);           end
 
-        %calculate sediment velocity for the mobilized volume in each reach
-        [ v_sed ] = velocity_EH( repmat( Fi_mob,[1 length(NH)] ) , Slope(t,:) , Wac , v , h , 'minvel', minvel,'phi',phi,'IDformula', 1 ) ;
-
+        %calculate sediment velocity for the mobilized volume in each reach        
+        [ v_sed ] = sed_velocity( indx_tr_cap , indx_partition,  repmat( Fi_mob,[1 length(NH)] ) , Slope(t,:) , Q(t,:) , Wac , v , h , 'minvel', minvel,'phi',phi,'velocity_formula', indx_velocity ) ;
+       
         %transfer the sediment volume downstream
         [Qbi_tr_t, Q_out_t  ] = sed_transfer_simple( V_mob , n , v_sed.*(60*60*24) , Lngt, Network );
 
@@ -232,7 +249,7 @@ for t = 2: timescale-1
 
     % change the slope accordingly to the bed elevation
     [Slope(t+1,:), Node_el(t+1,:)] = change_slope( Node_el(t+1,:) ,Lngt, Network, min_slope );
-            
+                
     %measure time of routing
     time2   = clock;
 
@@ -298,7 +315,7 @@ tr_cap_sum(isnan(tr_cap_sum)) = 0;
 % set all NaN active layer D50 to 0;
 D50_AL(isnan(D50_AL)) = 0;
 
-%% compress the Qbi_dep matrix
+%% compress the Qbi_dep matrix to save memory
 
 %[Qbi_dep] = depcompact_all(Qbi_dep, ReachData, Network,'h_layer',1 , 'CompSingle',1);
 
@@ -307,16 +324,16 @@ D50_AL(isnan(D50_AL)) = 0;
 
 data_output = cell(1,2);
 
-data_output{1,1} = 'Wac';
-data_output{2,1} = 'Mobilized volume';
-data_output{3,1} = 'Total sed in the reach';
-data_output{4,1} = 'Slope';
-data_output{5,1} = 'D50 tot';
-data_output{6,1} = 'D50 active layer';
-data_output{7,1} = 'Total trasport capacity';
-data_output{8,1} = 'Deposited volume';
-data_output{9,1} = 'Discharge';
-data_output{10,1} = 'Total sed in the reach - per class';
+data_output{1,1} = 'Channel Width [m]';
+data_output{2,1} = 'Mobilized volume [m^3]';
+data_output{3,1} = 'Total sed in the reach [m^3]';
+data_output{4,1} = 'Reach Slope';
+data_output{5,1} = 'Deposit layer D50 [mm]';
+data_output{6,1} = 'Active layer D50 [mm]';
+data_output{7,1} = 'Daily trasport capacity [m^3/day]';
+data_output{8,1} = 'Deposited volume [m^3]';
+data_output{9,1} = 'Discharge [m^3/s]';
+data_output{10,1} = 'Total sed in the reach - per class [m^3]';
 
 data_output{1,2} = repmat(Wac,[size(Qbi_dep,1),1]); 
 data_output{2,2} = QB_mob_sum;
