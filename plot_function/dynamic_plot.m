@@ -1,6 +1,8 @@
 function [] = dynamic_plot ( data_output, ReachData , DamDatabase )
-%plot input data and show reach features and sediment trasport processes by
-%clicking on it
+%DYNAMIC_PLOT displays the results collected in data output.
+%This interactive function allows the user to move forward or backward in
+%time, plot different outputs and explore how these output changes over
+%time.
 
 %% input data
 

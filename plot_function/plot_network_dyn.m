@@ -1,6 +1,6 @@
 function plot_network_dyn(ReachData,  plotvariable, varargin)
 % PLOT_NETWORK_DYN plots the river network and visualizes CONTINOUS DATA.  
-
+%
 % Can use color to represent different attributes. 
 % Colorcode can be clarified using a legend. 
 % Line width can represent different attributes.
@@ -221,7 +221,7 @@ t.FontSize = title_fontsize;
 if strcmp(indx_showID,'on')
     
     for i=1:size(ReachData,1)
-        str{i} = num2str([ReachData(i).ID_Bega]);
+        str{i} = num2str([ReachData(i).reach_id]);
     end
     xt = ([ReachData.x_FN]+[ReachData.x_TN])/2;
     yt = ([ReachData.y_FN]+[ReachData.y_TN])/2;
