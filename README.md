@@ -1,3 +1,10 @@
+The repository DCASCADEmodel contains all the basic functions necessary to run the D-CASCADE model on a river network. The Code is fully commented, and presents numerous customization options and plot functions. The code also contains the operations to include dams and reservoirs into the river network.
+Two case studies are provided as examples of D-CASCADE applications.
+
+---
+
+REPOSITORY STRUCTURE
+
 The data are divided into three folders:
 
 - Folder DCASCADE_functions contains all scripts and functions used to run D-CASCADE;
@@ -7,7 +14,7 @@ The data are divided into three folders:
 The main folder also contains two scripts, which show how to run D-CASCADE for the two case studies presented:
 
 - Script main_script_DCASCADE contains all operations necessary to run D-CASCADE on the Bega river network;
-- Script main_script_DCASCADE contains all operations necessary to run D-CASCADE on the 3S river network. This case study includes multiple reservoirs in the system, whose features (stored water and sediment volumes, release, flooded area, and others) are dynamically modelled.
+- main_script_DCASCADE_dams main_script_DCASCADE contains all operations necessary to run D-CASCADE on the 3S river network. This case study includes multiple reservoirs in the system, whose features (stored water and sediment volumes, release, flooded area, and others) are dynamically modelled. 
 
 A detailed explanation of the model structure and functioning is documented in Tangi, M., Bizzi, S., Fryirs, K., & Castelletti, A. (2022). A dynamic, network scale sediment (dis)connectivity model to reconstruct historical sediment transfer and river reach sediment budgets. Water Resources Research, 58, e2021WR030784. https://doi.org/10.1029/2021WR030784
 
@@ -51,6 +58,7 @@ The user can choose between two formulas to calculate the characteristic velocit
 
 DAM INPUT DATA
 
+In the model, dams directly influence sediment transport and delivery by flooding network reaches located inside their reservoir, trapping incoming sediment volumes, and changing downstream hydrology according to their release schedule. In turn, sediment deposition inside the impoundment decreases the total storage capacity of the reservoir. 
 If reservoirs are present in the network, they can be integrated into the simulation. The model will dynamically simulate their release schedule, water and sediment storage, and the changes in the hydrology of the downstream channels. 
 The dam position and reservoir features are defined in the DamData struct, reporting for each dam their main attributes:
 - Name and Code contain the full and reduced name of the reservoir, respectively;
