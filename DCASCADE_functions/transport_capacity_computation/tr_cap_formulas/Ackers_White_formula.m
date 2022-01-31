@@ -35,41 +35,41 @@ alpha = 10; %coefficient in the rough turbulent equation with a value of 10;
 
 %% transition exponent depending on sediment size [n]
 
-D_gr = D_AW * ( g * R / nu^2 )^(1/3); %dimensionless grain size
+D_gr = D_AW .* ( g * R ./ nu^2 ).^(1/3); %dimensionless grain size
 
 %shear velocity
-u_ast = sqrt(g * h * Slope);
+u_ast = sqrt(g .* h .* Slope);
 
 %% Transport capacity 
 
 %coefficient for dimensionless transport calculation
-if D_gr < 60
-    
-    C = 10 ^ ( 2.79 * log10(D_gr) - 0.98 * log10(D_gr)^2 - 3.46 );
-    m = 6.83 / D_gr + 1.67 ;        % m = 9.66 / D_gr + 1.34;
-    A = 0.23/ sqrt(D_gr) + 0.14;
-    n = 1 - 0.56 * log10(D_gr);
 
-else
-    
-    C = 0.025;    
-    m = 1.50;     % m = 1.78
-    A = 0.17;
-    n = 0;
-    
-end
+C = 0.025;    
+m = 1.50;     % m = 1.78
+A = 0.17;
+n = 0;
+
+C = repmat(C, size(D_gr));
+m = repmat(m, size(D_gr));
+A = repmat(A, size(D_gr));
+n = repmat(n, size(D_gr));
+
+C(D_gr < 60) = 10 .^ ( 2.79 .* log10(D_gr(D_gr < 60)) - 0.98 .* log10(D_gr(D_gr < 60)).^2 - 3.46 );
+m(D_gr < 60) = 6.83 ./ D_gr(D_gr < 60) + 1.67 ;     % m = 9.66 / D_gr(D_gr < 60) + 1.34;
+A(D_gr < 60) = 0.23./ sqrt(D_gr(D_gr < 60)) + 0.14;
+n(D_gr < 60) = 1 - 0.56 .* log10(D_gr(D_gr < 60));
 
 % mobility factor
-F_gr = u_ast ^n / sqrt(g * D_AW * R) * ( v / (sqrt(32) * log10(alpha * h /D_AW ) ) ) ^(1-n);
+F_gr = u_ast .^n ./ sqrt(g .* D_AW .* R) .* ( v ./ (sqrt(32) .* log10(alpha * h /D_AW ) ) ) .^(1-n);
  
 % dimensionless transport
-G_gr = C * ( max(F_gr/A -1 ,0) )^m;
+G_gr = C .* ( max(F_gr/A -1 ,0) ).^m;
 
 % weight concentration of bed material (Kg_sed / Kg_water)
-QS_ppm = G_gr * (R + 1) * D_AW * (v/u_ast)^n / h;
+QS_ppm = G_gr .* (R + 1) .* D_AW .* (v./u_ast).^n ./ h;
 
 % transport capacity (Kg_sed / s)
-QS_kg = rho_w * Q * QS_ppm ;
+QS_kg = rho_w .* Q .* QS_ppm ;
 
 % transport capacity (m3/ s)
 QS_AW = QS_kg./rho_s;

@@ -73,16 +73,16 @@ clear  deposit D16 D50 D84 Fi_r
 [data_output,extended_output,dam_output] = DCASCADE_main_dams( ReachData , Network , Q , timescale , DamDatabase, ORparameters, Qbi_dep_in , Qbi_input ,'dates_Q', dates_Q );
 
 %% run D-CASCADE (user defined settings)
-% this section shows how to run D-CASCADE with custom settings.
-% 
-% tr_cap_equation = 1;
-% partition_formula = 3;
-% velocity_formula = 2;
-% operating_rule = 3; %specify operating rule
-% 
-% [data_output,extended_output, dam_output] = DCASCADE_main( ReachData , Network , Q , timescale , Qbi_dep_in , Qbi_input , ...
-%     'OpRule', operating_rule,'tr_cap_equation',tr_cap_equation,'partition_formula',partition_formula,'velocity_formula',velocity_formula);
-% 
+%this section shows how to run D-CASCADE with custom settings.
+
+tr_cap_equation = 6;
+partition_formula = 3;
+velocity_formula = 1;
+operating_rule = 2; %specify operating rule
+
+[data_output,extended_output, dam_output] = DCASCADE_main_dams( ReachData , Network , Q , timescale , DamDatabase, ORparameters, Qbi_dep_in , Qbi_input ,'dates_Q', dates_Q ,...
+    'OpRule', operating_rule,'tr_cap_equation',tr_cap_equation,'partition_formula',partition_formula,'velocity_formula',velocity_formula);
+
 % clear  tr_cap_equation partition_formula velocity_formula
 
 %% plot results

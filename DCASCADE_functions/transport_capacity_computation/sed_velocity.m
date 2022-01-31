@@ -1,4 +1,4 @@
-function [ v_sed ] = sed_velocity( indx_tr_cap , indx_partition,  Fi_r ,  Slope_reach , Q, Wac, v , h , varargin )
+function [ v_sed ] = sed_velocity( indx_tr_cap , indx_partition,  Fi_r ,  Slope_t , Q_t, Wac_t , v , h , varargin )
 %VELOCITY_AW returns the velocity of the sediment (in m/s) for each sediment
 %class for each reach using the Engelund Hansen equations (1967)
 %
@@ -49,28 +49,28 @@ if indx_velocity == 1
     %choose transport capacity formula
     switch indx_tr_cap
         case 1
-            tr_cap_formula = @(D50,Fi_r)Parker_Klingeman_formula( Fi_r, D50, Slope_reach, Wac , h);
+            tr_cap_formula = @(D50,Fi_r)Parker_Klingeman_formula( Fi_r, D50, Slope_t, Wac_t , h);
         case 2
-            tr_cap_formula = @(D50,Fi_r)Wilcock_Crowe_formula(Fi_r, D50, Slope_reach, Wac , h);
+            tr_cap_formula = @(D50,Fi_r)Wilcock_Crowe_formula(Fi_r, D50, Slope_t, Wac_t , h);
         case 3
-            tr_cap_formula = @(D50)Engelund_Hansen_formula( D50 , Slope_reach , Wac, v , h );
+            tr_cap_formula = @(D50)Engelund_Hansen_formula( D50 , Slope_t , Wac_t, v , h );
         case 4
-            tr_cap_formula = @(D50)Yang_formula( Fi_r, D50 , Slope_reach , Q, v, h );
+            tr_cap_formula = @(D50)Yang_formula( Fi_r, D50 , Slope_t , Q_t, v, h );
         case 5
-            tr_cap_formula = @(D50)Wong_Parker_formula( D50 ,Slope_reach, Wac ,h );
+            tr_cap_formula = @(D50)Wong_Parker_formula( D50 ,Slope_t, Wac_t ,h );
         case 6
-            tr_cap_formula = @(D50)Ackers_White_formula( D50,  Slope_reach , Q, v, h);
+            tr_cap_formula = @(D50)Ackers_White_formula( D50,  Slope_t , Q_t, v, h);
     end
 
     if any(indx_tr_cap == [1,2]) % if I use fractional transport formulas...
         
-        tr_cap = zeros(length(dmi), length(Slope_reach));
+        tr_cap = zeros(length(dmi), length(Slope_t));
         % ... run the tr.cap function indipendently for each class, setting
         % the frequency of each class = 1
         for d=1:length(dmi)
             Fi_r = zeros(size(dmi));
             Fi_r(d) = 1;
-            Fi_r = repmat(Fi_r,1,length(Slope_reach));
+            Fi_r = repmat(Fi_r,1,length(Slope_t));
             
             tr_cap_class = tr_cap_formula(dmi(d), Fi_r);
             tr_cap(d,:) = tr_cap_class(d,:);
@@ -81,7 +81,7 @@ if indx_velocity == 1
     end
     
     %calculate velocity
-    v_sed = max( tr_cap./( Wac .* L_a .* (1-phi) ) , minvel);
+    v_sed = max( tr_cap./( Wac_t .* L_a .* (1-phi) ) , minvel);
     
     v_sed(:,L_a==0) = minvel;
     
@@ -91,8 +91,8 @@ end
 
 % sediment velocity found in this way is constant for all sed.classes
 if indx_velocity == 2
-    [ Qtr_cap, pci ] = tr_cap_junction( indx_tr_cap , indx_partition , Fi_r , D50 ,  Slope_reach, Q, Wac, v , h );
-    v_sed = max( Qtr_cap./( Wac .* L_a.*(1-phi) .* pci ) , minvel);
+    [ Qtr_cap, pci ] = tr_cap_junction( indx_tr_cap , indx_partition , Fi_r , D50 ,  Slope_t, Q_t, Wac_t, v , h );
+    v_sed = max( Qtr_cap./( Wac_t .* L_a.*(1-phi) .* pci ) , minvel);
 end
 
 

@@ -28,13 +28,13 @@ tauC = 0.0495;
 % tauC = 0.0470;
 
 %dimensionless shear stress
-tauWP = (Slope*h)/((rho_s/rho_w-1)*D50);
+tauWP = (Slope.*h)./((rho_s./rho_w-1).*D50);
 %dimensionless transport capacity
-qWP = alpha* (max(tauWP - tauC,0) )^(beta);
+qWP = alpha.* (max(tauWP - tauC,0) ).^(beta);
 %dimensionful transport capacity m3/(s*m) 
-qWP_dim = qWP * sqrt((rho_s/rho_w-1)* g * (D50)^3); %m3/(s*m) (formula from the original cascade paper)
+qWP_dim = qWP .* sqrt((rho_s./rho_w-1).* g * (D50).^3); %m3/(s*m) (formula from the original cascade paper)
 
-QS_WP = qWP_dim * Wac; %m3/s
+QS_WP = qWP_dim .* Wac; %m3/s
 
 tr_cap = QS_WP; %m3/s
 
