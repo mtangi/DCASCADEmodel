@@ -37,12 +37,12 @@ for c=1:length(data_output) - 1
 end
 
 %extract tot_sed_class values
-if any(cell2mat(cellfun(@(x)strcmp(x,'Total sed in the reach - per class'),data_output(:,1), 'UniformOutput', false)))
+if any(cell2mat(cellfun(@(x)strcmp(x,'Total sed in the reach - per class [m^3]'),data_output(:,1), 'UniformOutput', false)))
     
     def_sed_class = 1;
     
     % find position of tot_sed_class in data_output
-    pos_tot_sed_class = find(cell2mat(cellfun(@(x)strcmp(x,'Total sed in the reach - per class'),data_output(:,1), 'UniformOutput', false)) ==1);
+    pos_tot_sed_class = find(cell2mat(cellfun(@(x)strcmp(x,'Total sed in the reach - per class [m^3]'),data_output(:,1), 'UniformOutput', false)) ==1);
     %load tot_sed_class
     tot_sed_class = data_output{pos_tot_sed_class,2};
 
@@ -52,6 +52,8 @@ if any(cell2mat(cellfun(@(x)strcmp(x,'Total sed in the reach - per class'),data_
     
     cClass{pos_tot_sed_class} = unique(prctile(data_output{pos_tot_sed_class,2}(data_output{pos_tot_sed_class,2}~=0),0:i_class:100)); 
 
+else
+    pos_tot_sed_class = [];
 end
 
 Q = data_output{cell2mat(cellfun(@(x)strcmp(x,'Discharge [m^3/s]'),data_output(:,1), 'UniformOutput', false)) == 1 ,2} ;
