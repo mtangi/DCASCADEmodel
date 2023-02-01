@@ -93,7 +93,6 @@ end
 
 % find network to be plotted give the node ID as input
 if ~isempty(p.Results.plotnodes)
-    %upnodes = find( ~isnan(Network.Upstream.Predecessors{outlet}) ==1);
     plotvariable = plotvariable(p.Results.plotnodes);
     ReachData = ReachData(p.Results.plotnodes);
 end

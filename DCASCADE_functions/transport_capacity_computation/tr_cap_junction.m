@@ -14,10 +14,10 @@ dmi = 2.^(-psi)./1000; %sediment classes diameter (m)
 switch indx_tr_cap
     case 1
         tr_cap_formula = @(D50)Parker_Klingeman_formula( Fi_r_reach, D50, Slope, Wac , h);
-        indx_partition = 3;
+        indx_partition = 4;
     case 2
         tr_cap_formula = @(D50)Wilcock_Crowe_formula(Fi_r_reach, D50, Slope, Wac , h);
-        indx_partition = 3;        
+        indx_partition = 4;        
     case 3
         tr_cap_formula = @(D50)Engelund_Hansen_formula( D50 , Slope , Wac, v , h );
     case 4
